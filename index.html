@@ -337,6 +337,52 @@
     color: var(--stone);
   }
 
+  /* ── Output Theme Switcher ── */
+  .output-themes {
+    display: flex;
+    gap: 3px;
+    background: var(--cream);
+    padding: 3px;
+    border-radius: 50px;
+    border: 1px solid var(--divider);
+  }
+
+  .output-theme-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    padding: 4px 12px;
+    border: none;
+    border-radius: 50px;
+    background: transparent;
+    color: var(--stone);
+    cursor: pointer;
+    transition: all var(--transition);
+    letter-spacing: 0.02em;
+  }
+
+  .output-theme-btn:hover {
+    color: var(--ink);
+  }
+
+  .output-theme-btn.active {
+    background: white;
+    color: var(--ink);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  /* ── Preview in New Tab button ── */
+  .btn-preview-tab {
+    background: transparent;
+    color: var(--stone);
+    border: 1px solid var(--divider);
+  }
+
+  .btn-preview-tab:hover {
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+
   /* ── Toast ── */
   .toast {
     position: fixed;
@@ -423,6 +469,7 @@ Just start typing or paste content..."></textarea>
       <span class="syntax-hint"><code>- item</code> list</span>
       <span class="syntax-hint"><code>> text</code> quote</span>
       <span class="syntax-hint"><code>[text](url)</code> link</span>
+      <span class="syntax-hint"><code>Java Program for X</code> tabbed code</span>
     </div>
   </div>
 
@@ -430,7 +477,14 @@ Just start typing or paste content..."></textarea>
   <div class="pane preview-pane">
     <div class="pane-header">
       <span class="pane-label">Preview</span>
-      <div class="pane-dot live" id="preview-dot"></div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="output-themes">
+          <button class="output-theme-btn active" data-theme="dark">Dark</button>
+          <button class="output-theme-btn" data-theme="cleanLight">Light</button>
+          <button class="output-theme-btn" data-theme="midnightBlue">Midnight</button>
+        </div>
+        <div class="pane-dot live" id="preview-dot"></div>
+      </div>
     </div>
     <div class="preview-scroll" id="preview-scroll">
       <div id="preview"></div>
@@ -442,6 +496,7 @@ Just start typing or paste content..."></textarea>
       <span class="char-count" id="char-count">0 chars</span>
       <div style="display:flex;gap:8px;">
         <button class="action-btn btn-view-source" id="btn-source">‹/› Source</button>
+        <button class="action-btn btn-preview-tab" id="btn-preview-tab">Preview in New Tab</button>
         <button class="action-btn btn-copy" id="btn-copy">Copy HTML</button>
       </div>
     </div>
@@ -463,9 +518,11 @@ const inputDot = document.getElementById('input-dot');
 const toast = document.getElementById('toast');
 
 let currentPreset = 'clean';
+let currentOutputTheme = 'dark';
 let showSource = false;
+let tabIdCounter = 0;
 
-// ── Style Presets ──
+// ── Style Presets (tool UI presets — unchanged) ──
 const presets = {
   clean: {
     body: 'font-family: Georgia, "Times New Roman", serif; color: #2c2c2c; line-height: 1.7; max-width: 640px;',
@@ -525,12 +582,97 @@ const presets = {
   },
 };
 
-// ── Markdown Parser ──
-function parseMarkdown(text) {
+// ── Output Content Themes (applied to generated HTML) ──
+const outputThemes = {
+  dark: {
+    name: 'Dark',
+    body: 'background: #1a1b1f; color: #c8c5bd; font-family: Georgia, "Times New Roman", serif; line-height: 1.75; max-width: 680px; padding: 32px; border-radius: 8px;',
+    h1: 'font-size: 30px; font-weight: 700; color: #f0ebe1; margin: 0 0 18px 0; line-height: 1.2; border-bottom: 2px solid #c8873e44; padding-bottom: 12px; letter-spacing: -0.3px;',
+    h2: 'font-size: 23px; font-weight: 700; color: #e8c47c; margin: 32px 0 14px 0; line-height: 1.3;',
+    h3: 'font-size: 18px; font-weight: 600; color: #a89f91; margin: 24px 0 10px 0; line-height: 1.35; text-transform: uppercase; letter-spacing: 0.5px; font-size: 14px;',
+    p: 'margin: 0 0 16px 0; font-size: 15.5px; color: #b8b3a9;',
+    a: 'color: #e8c47c; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #e8c47c66;',
+    strong: 'font-weight: 700; color: #f0ebe1;',
+    em: 'font-style: italic; color: #d4a85c;',
+    ul: 'margin: 0 0 16px 0; padding-left: 24px;',
+    li: 'margin: 0 0 8px 0; font-size: 15.5px; color: #b8b3a9;',
+    blockquote: 'margin: 0 0 18px 0; padding: 16px 20px; border-left: 3px solid #c8873e; background: #22232a; color: #a89f91; font-style: italic; border-radius: 0 6px 6px 0;',
+    hr: 'border: none; border-top: 1px solid #2e2f36; margin: 28px 0;',
+    codeBlock: 'background: #12131a; color: #d4cfca; padding: 20px; font-family: "DM Mono", "Fira Code", "Consolas", monospace; font-size: 13.5px; line-height: 1.65; overflow-x: auto; border-radius: 0 0 8px 8px; border: 1px solid #2a2b33; border-top: none; white-space: pre; display: block; margin: 0;',
+    tabBar: 'background: #22232a; padding: 0; display: flex; border-radius: 8px 8px 0 0; border: 1px solid #2a2b33; border-bottom: none; overflow: hidden;',
+    tabActive: 'background: #12131a; color: #e8c47c; padding: 10px 20px; font-family: "DM Mono", monospace; font-size: 12.5px; font-weight: 600; border: none; cursor: pointer; border-bottom: 2px solid #c8873e; letter-spacing: 0.3px;',
+    tabInactive: 'background: transparent; color: #6b6760; padding: 10px 20px; font-family: "DM Mono", monospace; font-size: 12.5px; font-weight: 500; border: none; cursor: pointer; border-bottom: 2px solid transparent; letter-spacing: 0.3px;',
+  },
+  cleanLight: {
+    name: 'Clean Light',
+    body: 'background: #faf8f4; color: #3a362f; font-family: Georgia, "Times New Roman", serif; line-height: 1.75; max-width: 680px; padding: 32px; border-radius: 8px;',
+    h1: 'font-size: 30px; font-weight: 700; color: #1c1a17; margin: 0 0 18px 0; line-height: 1.2; border-bottom: 2px solid #e0dbd2; padding-bottom: 12px; letter-spacing: -0.3px;',
+    h2: 'font-size: 23px; font-weight: 700; color: #8b4513; margin: 32px 0 14px 0; line-height: 1.3;',
+    h3: 'font-size: 18px; font-weight: 600; color: #6b5d4f; margin: 24px 0 10px 0; line-height: 1.35; text-transform: uppercase; letter-spacing: 0.5px; font-size: 14px;',
+    p: 'margin: 0 0 16px 0; font-size: 15.5px; color: #4a453d;',
+    a: 'color: #8b4513; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #8b451366;',
+    strong: 'font-weight: 700; color: #1c1a17;',
+    em: 'font-style: italic; color: #7a5c3a;',
+    ul: 'margin: 0 0 16px 0; padding-left: 24px;',
+    li: 'margin: 0 0 8px 0; font-size: 15.5px; color: #4a453d;',
+    blockquote: 'margin: 0 0 18px 0; padding: 16px 20px; border-left: 3px solid #c8873e; background: #f0ece4; color: #6b5d4f; font-style: italic; border-radius: 0 6px 6px 0;',
+    hr: 'border: none; border-top: 1px solid #ddd7cc; margin: 28px 0;',
+    codeBlock: 'background: #1c1b22; color: #d4d0c8; padding: 20px; font-family: "DM Mono", "Fira Code", "Consolas", monospace; font-size: 13.5px; line-height: 1.65; overflow-x: auto; border-radius: 0 0 8px 8px; border: 1px solid #e0dbd2; border-top: none; white-space: pre; display: block; margin: 0;',
+    tabBar: 'background: #ede8df; padding: 0; display: flex; border-radius: 8px 8px 0 0; border: 1px solid #e0dbd2; border-bottom: none; overflow: hidden;',
+    tabActive: 'background: #1c1b22; color: #f0ebe1; padding: 10px 20px; font-family: "DM Mono", monospace; font-size: 12.5px; font-weight: 600; border: none; cursor: pointer; border-bottom: 2px solid #c8873e; letter-spacing: 0.3px;',
+    tabInactive: 'background: transparent; color: #8a8278; padding: 10px 20px; font-family: "DM Mono", monospace; font-size: 12.5px; font-weight: 500; border: none; cursor: pointer; border-bottom: 2px solid transparent; letter-spacing: 0.3px;',
+  },
+  midnightBlue: {
+    name: 'Midnight Blue',
+    body: 'background: #0f1729; color: #a8b5d1; font-family: Georgia, "Times New Roman", serif; line-height: 1.75; max-width: 680px; padding: 32px; border-radius: 8px;',
+    h1: 'font-size: 30px; font-weight: 700; color: #d6e1f7; margin: 0 0 18px 0; line-height: 1.2; border-bottom: 2px solid #1e3a5f; padding-bottom: 12px; letter-spacing: -0.3px;',
+    h2: 'font-size: 23px; font-weight: 700; color: #7eb8f0; margin: 32px 0 14px 0; line-height: 1.3;',
+    h3: 'font-size: 18px; font-weight: 600; color: #5a7da8; margin: 24px 0 10px 0; line-height: 1.35; text-transform: uppercase; letter-spacing: 0.5px; font-size: 14px;',
+    p: 'margin: 0 0 16px 0; font-size: 15.5px; color: #8e9dba;',
+    a: 'color: #7eb8f0; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #7eb8f066;',
+    strong: 'font-weight: 700; color: #d6e1f7;',
+    em: 'font-style: italic; color: #82c4ad;',
+    ul: 'margin: 0 0 16px 0; padding-left: 24px;',
+    li: 'margin: 0 0 8px 0; font-size: 15.5px; color: #8e9dba;',
+    blockquote: 'margin: 0 0 18px 0; padding: 16px 20px; border-left: 3px solid #3b7dd8; background: #13203d; color: #7b8fb0; font-style: italic; border-radius: 0 6px 6px 0;',
+    hr: 'border: none; border-top: 1px solid #1e2d4a; margin: 28px 0;',
+    codeBlock: 'background: #0a1020; color: #c5cee0; padding: 20px; font-family: "DM Mono", "Fira Code", "Consolas", monospace; font-size: 13.5px; line-height: 1.65; overflow-x: auto; border-radius: 0 0 8px 8px; border: 1px solid #1a2744; border-top: none; white-space: pre; display: block; margin: 0;',
+    tabBar: 'background: #13203d; padding: 0; display: flex; border-radius: 8px 8px 0 0; border: 1px solid #1a2744; border-bottom: none; overflow: hidden;',
+    tabActive: 'background: #0a1020; color: #7eb8f0; padding: 10px 20px; font-family: "DM Mono", monospace; font-size: 12.5px; font-weight: 600; border: none; cursor: pointer; border-bottom: 2px solid #3b7dd8; letter-spacing: 0.3px;',
+    tabInactive: 'background: transparent; color: #4a5d80; padding: 10px 20px; font-family: "DM Mono", monospace; font-size: 12.5px; font-weight: 500; border: none; cursor: pointer; border-bottom: 2px solid transparent; letter-spacing: 0.3px;',
+  },
+};
+
+// ── Code block detection regex ──
+// Matches: "Java Program for X", "Cpp Program for X", "C Program for X"
+const codeHeaderRegex = /^(Java|Cpp|C)\s+Program\s+for\s+(.+)$/i;
+
+// ── Determine if a line looks like code ──
+function isCodeLine(line) {
+  // Empty lines inside code blocks are fine
+  if (line.trim() === '') return true;
+  // Lines with typical code indicators
+  if (/^\s{2,}/.test(line)) return true; // indented
+  if (/^[{}();]/.test(line.trim())) return true;
+  if (/^(#include|import |package |public |private |protected |class |int |void |float |double |char |return |for|while|if|else|switch|case|break|continue|using |namespace |cout|cin|printf|scanf|System\.)/.test(line.trim())) return true;
+  if (/[{};]$/.test(line.trim())) return true;
+  if (/^\/\//.test(line.trim())) return true; // comments
+  return false;
+}
+
+// ── Smart Content Parser ──
+function parseContent(text) {
   const lines = text.split('\n');
   const result = [];
   let inList = false;
   let listItems = [];
+  // Collect code groups: topic -> [{lang, lines}]
+  let codeGroups = {};
+  let codeGroupOrder = [];
+  let currentCodeLang = null;
+  let currentCodeTopic = null;
+  let currentCodeLines = [];
+  let collectingCode = false;
 
   function flushList() {
     if (inList && listItems.length) {
@@ -540,21 +682,75 @@ function parseMarkdown(text) {
     }
   }
 
-  function inlineFormat(str) {
-    // Links: [text](url)
-    str = str.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, url) => {
-      return `<a style="${presets[currentPreset].a}" href="${escapeAttr(url)}">${escapeHtml(text)}</a>`;
-    });
-    // Bold: **text**
-    str = str.replace(/\*\*(.+?)\*\*/g, (_, t) => `<strong style="${presets[currentPreset].strong}">${t}</strong>`);
-    // Italic: *text*
-    str = str.replace(/\*(.+?)\*/g, (_, t) => `<em style="${presets[currentPreset].em}">${t}</em>`);
-    return str;
+  function flushCode() {
+    if (collectingCode && currentCodeLang && currentCodeTopic) {
+      // Trim trailing empty lines
+      while (currentCodeLines.length && currentCodeLines[currentCodeLines.length - 1].trim() === '') {
+        currentCodeLines.pop();
+      }
+      if (currentCodeLines.length) {
+        const key = currentCodeTopic;
+        if (!codeGroups[key]) {
+          codeGroups[key] = [];
+          codeGroupOrder.push(key);
+          // Insert a placeholder in result
+          result.push({ type: 'codeGroup', topic: key });
+        }
+        codeGroups[key].push({ lang: currentCodeLang, code: currentCodeLines.join('\n') });
+      }
+    }
+    currentCodeLang = null;
+    currentCodeTopic = null;
+    currentCodeLines = [];
+    collectingCode = false;
   }
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
+
+    // Check for code header
+    const codeMatch = trimmed.match(codeHeaderRegex);
+    if (codeMatch) {
+      flushCode();
+      flushList();
+      const rawLang = codeMatch[1];
+      currentCodeLang = rawLang === 'Cpp' || rawLang === 'cpp' ? 'C++' : rawLang === 'c' ? 'C' : rawLang.charAt(0).toUpperCase() + rawLang.slice(1);
+      currentCodeTopic = codeMatch[2].trim();
+      collectingCode = true;
+      continue;
+    }
+
+    // If collecting code, check if line is still code
+    if (collectingCode) {
+      // A non-empty line that doesn't look like code ends the block
+      // But we also stop at known section markers
+      const isHeading = /^(#{1,3})\s+/.test(trimmed);
+      const isBlockquote = trimmed.startsWith('> ');
+      const isListItem = trimmed.startsWith('- ') || trimmed.startsWith('* ');
+      const isHr = /^-{3,}$/.test(trimmed) || /^\*{3,}$/.test(trimmed);
+      const isNextCodeHeader = codeHeaderRegex.test(trimmed);
+      // Known non-code section words
+      const isSectionKeyword = /^(Explanation|Definition|Applications|Example|Note|Output|Resulting|Updated|Memory|Several|The |An |In |While |Each |Initially|To |After |Elements|Example output|Traversal|Insertion|Deletion|Searching|Updating)/.test(trimmed);
+
+      if (isHeading || isBlockquote || isHr || isNextCodeHeader) {
+        flushCode();
+        // Don't continue — re-process this line below
+      } else if (trimmed === '' && currentCodeLines.length === 0) {
+        // Skip leading empty lines in code
+        continue;
+      } else if (isSectionKeyword && !isCodeLine(line)) {
+        flushCode();
+        // Re-process this line below
+      } else if (trimmed !== '' && !isCodeLine(line) && currentCodeLines.length > 3) {
+        // After collecting some code, a non-code-looking line ends the block
+        flushCode();
+        // Re-process
+      } else {
+        currentCodeLines.push(line);
+        continue;
+      }
+    }
 
     if (!trimmed) {
       flushList();
@@ -595,47 +791,98 @@ function parseMarkdown(text) {
     flushList();
     result.push({ type: 'p', text: trimmed });
   }
+  flushCode();
   flushList();
 
-  // Generate HTML
-  const s = presets[currentPreset];
-  let html = '';
+  return { blocks: result, codeGroups };
+}
 
-  for (const block of result) {
+// ── Generate HTML from parsed content ──
+function generateHtml(text) {
+  const { blocks, codeGroups } = parseContent(text);
+  const ot = outputThemes[currentOutputTheme];
+
+  function inlineFormat(str) {
+    str = str.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, url) => {
+      return `<a style="${ot.a}" href="${escapeAttr(url)}">${escapeHtml(text)}</a>`;
+    });
+    str = str.replace(/\*\*(.+?)\*\*/g, (_, t) => `<strong style="${ot.strong}">${t}</strong>`);
+    str = str.replace(/\*(.+?)\*/g, (_, t) => `<em style="${ot.em}">${t}</em>`);
+    return str;
+  }
+
+  let html = '';
+  // Track which code groups have been rendered
+  const renderedGroups = new Set();
+
+  for (const block of blocks) {
     switch (block.type) {
       case 'h1':
-        html += `<h1 style="${s.h1}">${inlineFormat(escapeHtml(block.text))}</h1>\n`;
+        html += `<h1 style="${ot.h1}">${inlineFormat(escapeHtml(block.text))}</h1>\n`;
         break;
       case 'h2':
-        html += `<h2 style="${s.h2}">${inlineFormat(escapeHtml(block.text))}</h2>\n`;
+        html += `<h2 style="${ot.h2}">${inlineFormat(escapeHtml(block.text))}</h2>\n`;
         break;
       case 'h3':
-        html += `<h3 style="${s.h3}">${inlineFormat(escapeHtml(block.text))}</h3>\n`;
+        html += `<h3 style="${ot.h3}">${inlineFormat(escapeHtml(block.text))}</h3>\n`;
         break;
       case 'p':
-        html += `<p style="${s.p}">${inlineFormat(escapeHtml(block.text))}</p>\n`;
+        html += `<p style="${ot.p}">${inlineFormat(escapeHtml(block.text))}</p>\n`;
         break;
       case 'blockquote':
-        html += `<blockquote style="${s.blockquote}">${inlineFormat(escapeHtml(block.text))}</blockquote>\n`;
+        html += `<blockquote style="${ot.blockquote}">${inlineFormat(escapeHtml(block.text))}</blockquote>\n`;
         break;
       case 'ul':
-        html += `<ul style="${s.ul}">\n`;
+        html += `<ul style="${ot.ul}">\n`;
         for (const item of block.items) {
-          html += `  <li style="${s.li}">${inlineFormat(escapeHtml(item))}</li>\n`;
+          html += `  <li style="${ot.li}">${inlineFormat(escapeHtml(item))}</li>\n`;
         }
         html += `</ul>\n`;
         break;
       case 'hr':
-        html += `<hr style="${s.hr}">\n`;
+        html += `<hr style="${ot.hr}">\n`;
         break;
+      case 'codeGroup': {
+        if (renderedGroups.has(block.topic)) break;
+        renderedGroups.add(block.topic);
+        const group = codeGroups[block.topic];
+        if (!group || !group.length) break;
+        html += generateTabbedCode(block.topic, group, ot);
+        break;
+      }
     }
   }
 
-  // Wrap in a container div
   if (html) {
-    html = `<div style="${s.body}">\n${html}</div>`;
+    html = `<div style="${ot.body}">\n${html}</div>`;
   }
 
+  return html;
+}
+
+// ── Generate tabbed code block HTML with inline styles ──
+function generateTabbedCode(topic, codeBlocks, theme) {
+  const groupId = 'cg' + (tabIdCounter++);
+  let html = '';
+
+  html += `<div style="margin: 20px 0 24px 0;">\n`;
+
+  // Tab bar
+  html += `<div style="${theme.tabBar}">\n`;
+  codeBlocks.forEach((block, idx) => {
+    const style = idx === 0 ? theme.tabActive : theme.tabInactive;
+    html += `  <button onclick="(function(el){var p=el.parentElement.parentElement;var tabs=p.querySelectorAll('button');var panes=p.querySelectorAll('pre');var activeS='${theme.tabActive.replace(/'/g, "\\'")}';var inactiveS='${theme.tabInactive.replace(/'/g, "\\'")}';for(var i=0;i<tabs.length;i++){tabs[i].style.cssText=inactiveS;panes[i].style.cssText=panes[i].dataset.baseStyle+';display:none';}el.style.cssText=activeS;panes[${idx}].style.cssText=panes[${idx}].dataset.baseStyle+';display:block';})(this)" style="${style}">${escapeHtml(block.lang)}</button>\n`;
+  });
+  html += `</div>\n`;
+
+  // Code panes
+  codeBlocks.forEach((block, idx) => {
+    const display = idx === 0 ? 'display: block' : 'display: none';
+    const baseStyle = theme.codeBlock;
+    html += `<pre data-base-style="${escapeAttr(baseStyle)}" style="${baseStyle}; ${display};">${escapeHtml(block.code)}</pre>\n`;
+  });
+
+  html += `</div>\n`;
   return html;
 }
 
@@ -653,8 +900,9 @@ function escapeAttr(str) {
 
 // ── Rendering ──
 function render() {
+  tabIdCounter = 0;
   const text = input.value;
-  const html = parseMarkdown(text);
+  const html = generateHtml(text);
   preview.innerHTML = html;
   sourceCode.textContent = html;
 
@@ -680,9 +928,19 @@ document.querySelectorAll('.preset-btn').forEach(btn => {
   });
 });
 
+// Output theme buttons
+document.querySelectorAll('.output-theme-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelector('.output-theme-btn.active').classList.remove('active');
+    btn.classList.add('active');
+    currentOutputTheme = btn.dataset.theme;
+    render();
+  });
+});
+
 // Copy button
 btnCopy.addEventListener('click', async () => {
-  const html = parseMarkdown(input.value);
+  const html = generateHtml(input.value);
   if (!html) {
     showToast('Nothing to copy — type some content first');
     return;
@@ -697,7 +955,6 @@ btnCopy.addEventListener('click', async () => {
       btnCopy.classList.remove('copied');
     }, 2000);
   } catch {
-    // Fallback
     const ta = document.createElement('textarea');
     ta.value = html;
     document.body.appendChild(ta);
@@ -721,6 +978,37 @@ btnSource.addEventListener('click', () => {
   previewScroll.style.display = showSource ? 'none' : 'block';
   btnSource.classList.toggle('active', showSource);
 });
+
+// Preview in New Tab
+document.getElementById('btn-preview-tab').addEventListener('click', () => {
+  const html = generateHtml(input.value);
+  if (!html) {
+    showToast('Nothing to preview — type some content first');
+    return;
+  }
+  const fullHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inkwell Preview</title>
+<style>body{margin:0;display:flex;justify-content:center;padding:40px 20px;min-height:100vh;background:${getPreviewBg()};}</style>
+</head>
+<body>
+${html}
+</body>
+</html>`;
+  const blob = new Blob([fullHtml], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  showToast('Preview opened in new tab');
+});
+
+function getPreviewBg() {
+  const bgMatch = outputThemes[currentOutputTheme].body.match(/background:\s*([^;]+)/);
+  return bgMatch ? bgMatch[1].trim() : '#1a1b1f';
+}
 
 function showToast(msg) {
   toast.textContent = msg;
