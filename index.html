@@ -120,9 +120,7 @@
 
   /* ── Main workspace ── */
   .workspace {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0;
+    display: flex;
     margin: 24px 40px 40px;
     border-radius: var(--radius);
     overflow: hidden;
@@ -136,6 +134,50 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    min-width: 80px;
+    overflow: hidden;
+  }
+
+  .input-pane {
+    flex: 1 1 50%;
+  }
+
+  .preview-pane {
+    flex: 1 1 50%;
+  }
+
+  /* ── Resize handle ── */
+  .resize-handle {
+    width: 6px;
+    cursor: col-resize;
+    background: var(--divider);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+    transition: background var(--transition);
+  }
+
+  .resize-handle:hover,
+  .resize-handle.dragging {
+    background: var(--amber);
+  }
+
+  .resize-handle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 32px;
+    border-radius: 2px;
+    background: var(--stone-light);
+    transition: background var(--transition);
+  }
+
+  .resize-handle:hover::after,
+  .resize-handle.dragging::after {
+    background: white;
   }
 
   .pane-header {
@@ -196,7 +238,6 @@
   /* ── Preview pane ── */
   .preview-pane {
     background: var(--pane-bg);
-    border-left: 1px solid var(--divider);
   }
 
   .preview-scroll {
@@ -469,11 +510,13 @@
   @media (max-width: 800px) {
     header { padding: 20px 16px 0; flex-direction: column; align-items: flex-start; gap: 12px; }
     .workspace {
-      grid-template-columns: 1fr;
+      flex-direction: column;
       margin: 16px;
       min-height: auto;
     }
-    .preview-pane { border-left: none; border-top: 1px solid var(--divider); }
+    .input-pane, .preview-pane { flex: none !important; width: 100% !important; }
+    .resize-handle { display: none; }
+    .preview-pane { border-top: 1px solid var(--divider); }
     .preview-scroll { min-height: 300px; }
     #content-input { min-height: 250px; }
   }
@@ -539,6 +582,9 @@ Single code blocks become collapsible."></textarea>
       <span class="syntax-hint"><code>```lang</code> code block</span>
     </div>
   </div>
+
+  <!-- Resize Handle -->
+  <div class="resize-handle" id="resize-handle"></div>
 
   <!-- Preview Pane -->
   <div class="pane preview-pane">
@@ -1394,6 +1440,41 @@ input.addEventListener('keydown', (e) => {
     input.selectionStart = input.selectionEnd = start + 2;
     render();
   }
+});
+
+// ── Resizable panes ──
+const resizeHandle = document.getElementById('resize-handle');
+const workspace = document.querySelector('.workspace');
+const previewPane = document.querySelector('.preview-pane');
+
+resizeHandle.addEventListener('mousedown', (e) => {
+  e.preventDefault();
+  resizeHandle.classList.add('dragging');
+  document.body.style.cursor = 'col-resize';
+  document.body.style.userSelect = 'none';
+
+  const workspaceRect = workspace.getBoundingClientRect();
+
+  function onMouseMove(e) {
+    const offset = e.clientX - workspaceRect.left;
+    const total = workspaceRect.width;
+    const pct = Math.max(5, Math.min(95, (offset / total) * 100));
+    inputPane.style.flex = 'none';
+    inputPane.style.width = pct + '%';
+    previewPane.style.flex = 'none';
+    previewPane.style.width = (100 - pct) + '%';
+  }
+
+  function onMouseUp() {
+    resizeHandle.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  }
+
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
 });
 
 // Initial render
