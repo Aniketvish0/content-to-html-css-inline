@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inkwell — Content to Inline HTML</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --ink: #1a1a1a;
+    --paper: #f6f3ee;
+    --cream: #ede8df;
+    --amber: #c8873e;
+    --amber-dim: #c8873e22;
+    --amber-glow: #c8873e44;
+    --stone: #8a8278;
+    --stone-light: #b8b1a6;
+    --pane-bg: #faf8f4;
+    --divider: #ddd7cc;
+    --code-bg: #2b2926;
+    --code-fg: #e8e0d4;
+    --radius: 10px;
+    --shadow-soft: 0 2px 20px rgba(0,0,0,0.06);
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.08), 0 8px 30px rgba(0,0,0,0.04);
+    --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: 'Instrument Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Subtle grain texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── Header ── */
+  header {
+    padding: 28px 40px 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+
+  .logo h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-size: 1.75rem;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  .logo span {
+    font-size: 0.78rem;
+    color: var(--stone);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-weight: 500;
+    position: relative;
+    top: -1px;
+  }
+
+  /* ── Preset Switcher ── */
+  .presets {
+    display: flex;
+    gap: 6px;
+    background: var(--cream);
+    padding: 4px;
+    border-radius: 50px;
+    border: 1px solid var(--divider);
+  }
+
+  .preset-btn {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 7px 18px;
+    border: none;
+    border-radius: 50px;
+    background: transparent;
+    color: var(--stone);
+    cursor: pointer;
+    transition: all var(--transition);
+    letter-spacing: 0.01em;
+  }
+
+  .preset-btn:hover {
+    color: var(--ink);
+  }
+
+  .preset-btn.active {
+    background: white;
+    color: var(--ink);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  /* ── Main workspace ── */
+  .workspace {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin: 24px 40px 40px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--divider);
+    box-shadow: var(--shadow-card);
+    min-height: calc(100vh - 160px);
+  }
+
+  /* ── Panes ── */
+  .pane {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .pane-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--divider);
+    background: var(--pane-bg);
+    flex-shrink: 0;
+  }
+
+  .pane-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--stone);
+  }
+
+  .pane-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--stone-light);
+    transition: background var(--transition);
+  }
+
+  .pane-dot.live {
+    background: var(--amber);
+    box-shadow: 0 0 8px var(--amber-glow);
+  }
+
+  /* ── Input pane ── */
+  .input-pane {
+    background: white;
+  }
+
+  #content-input {
+    flex: 1;
+    width: 100%;
+    padding: 24px;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: var(--ink);
+    background: transparent;
+    tab-size: 2;
+  }
+
+  #content-input::placeholder {
+    color: var(--stone-light);
+  }
+
+  /* ── Preview pane ── */
+  .preview-pane {
+    background: var(--pane-bg);
+    border-left: 1px solid var(--divider);
+  }
+
+  .preview-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  #preview {
+    min-height: 100%;
+  }
+
+  #preview:empty::before {
+    content: 'Your styled preview appears here...';
+    color: var(--stone-light);
+    font-style: italic;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+  }
+
+  /* ── Bottom bar ── */
+  .bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 22px;
+    border-top: 1px solid var(--divider);
+    background: var(--pane-bg);
+    flex-shrink: 0;
+    gap: 12px;
+  }
+
+  .char-count {
+    font-size: 0.72rem;
+    color: var(--stone-light);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.03em;
+  }
+
+  .action-btn {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 9px 22px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    letter-spacing: 0.01em;
+  }
+
+  .btn-copy {
+    background: var(--ink);
+    color: white;
+  }
+
+  .btn-copy:hover {
+    background: #333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+  }
+
+  .btn-copy:active {
+    transform: translateY(0);
+  }
+
+  .btn-copy.copied {
+    background: var(--amber);
+  }
+
+  .btn-view-source {
+    background: transparent;
+    color: var(--stone);
+    border: 1px solid var(--divider);
+  }
+
+  .btn-view-source:hover {
+    border-color: var(--stone-light);
+    color: var(--ink);
+  }
+
+  .btn-view-source.active {
+    background: var(--amber-dim);
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+
+  /* ── Source code overlay ── */
+  .source-view {
+    display: none;
+    flex: 1;
+    overflow: auto;
+    background: var(--code-bg);
+  }
+
+  .source-view.visible {
+    display: block;
+  }
+
+  .source-view pre {
+    padding: 24px;
+    margin: 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: var(--code-fg);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* ── Syntax guide ── */
+  .syntax-guide {
+    padding: 14px 22px;
+    border-top: 1px solid var(--divider);
+    background: var(--pane-bg);
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .syntax-hint {
+    font-size: 0.7rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--stone-light);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .syntax-hint code {
+    background: var(--cream);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    color: var(--stone);
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 800px) {
+    header { padding: 20px 16px 0; flex-direction: column; align-items: flex-start; gap: 12px; }
+    .workspace {
+      grid-template-columns: 1fr;
+      margin: 16px;
+      min-height: auto;
+    }
+    .preview-pane { border-left: none; border-top: 1px solid var(--divider); }
+    .preview-scroll { min-height: 300px; }
+    #content-input { min-height: 250px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <h1>Inkwell</h1>
+    <span>Content → Inline HTML</span>
+  </div>
+  <div class="presets">
+    <button class="preset-btn active" data-preset="clean">Clean</button>
+    <button class="preset-btn" data-preset="newsletter">Newsletter</button>
+    <button class="preset-btn" data-preset="bold">Bold</button>
+    <button class="preset-btn" data-preset="dark">Dark</button>
+  </div>
+</header>
+
+<div class="workspace">
+  <!-- Input Pane -->
+  <div class="pane input-pane">
+    <div class="pane-header">
+      <span class="pane-label">Input</span>
+      <div class="pane-dot" id="input-dot"></div>
+    </div>
+    <textarea id="content-input" placeholder="Paste your content here...
+
+# Heading 1
+## Heading 2
+### Heading 3
+
+Regular paragraph text with **bold** and *italic* words.
+
+- List item one
+- List item two
+- List item three
+
+> This is a blockquote
+
+[Link text](https://example.com)
+
+---
+
+Just start typing or paste content..."></textarea>
+    <div class="syntax-guide">
+      <span class="syntax-hint"><code>#</code> heading</span>
+      <span class="syntax-hint"><code>**text**</code> bold</span>
+      <span class="syntax-hint"><code>*text*</code> italic</span>
+      <span class="syntax-hint"><code>- item</code> list</span>
+      <span class="syntax-hint"><code>> text</code> quote</span>
+      <span class="syntax-hint"><code>[text](url)</code> link</span>
+    </div>
+  </div>
+
+  <!-- Preview Pane -->
+  <div class="pane preview-pane">
+    <div class="pane-header">
+      <span class="pane-label">Preview</span>
+      <div class="pane-dot live" id="preview-dot"></div>
+    </div>
+    <div class="preview-scroll" id="preview-scroll">
+      <div id="preview"></div>
+    </div>
+    <div class="source-view" id="source-view">
+      <pre id="source-code"></pre>
+    </div>
+    <div class="bottom-bar">
+      <span class="char-count" id="char-count">0 chars</span>
+      <div style="display:flex;gap:8px;">
+        <button class="action-btn btn-view-source" id="btn-source">‹/› Source</button>
+        <button class="action-btn btn-copy" id="btn-copy">Copy HTML</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const input = document.getElementById('content-input');
+const preview = document.getElementById('preview');
+const previewScroll = document.getElementById('preview-scroll');
+const sourceView = document.getElementById('source-view');
+const sourceCode = document.getElementById('source-code');
+const charCount = document.getElementById('char-count');
+const btnCopy = document.getElementById('btn-copy');
+const btnSource = document.getElementById('btn-source');
+const inputDot = document.getElementById('input-dot');
+const toast = document.getElementById('toast');
+
+let currentPreset = 'clean';
+let showSource = false;
+
+// ── Style Presets ──
+const presets = {
+  clean: {
+    body: 'font-family: Georgia, "Times New Roman", serif; color: #2c2c2c; line-height: 1.7; max-width: 640px;',
+    h1: 'font-family: Georgia, serif; font-size: 28px; font-weight: 700; color: #1a1a1a; margin: 0 0 16px 0; line-height: 1.25; border-bottom: 2px solid #e8e8e8; padding-bottom: 10px;',
+    h2: 'font-family: Georgia, serif; font-size: 22px; font-weight: 700; color: #1a1a1a; margin: 24px 0 12px 0; line-height: 1.3;',
+    h3: 'font-family: Georgia, serif; font-size: 18px; font-weight: 700; color: #333; margin: 20px 0 10px 0; line-height: 1.35;',
+    p: 'margin: 0 0 14px 0; font-size: 16px;',
+    a: 'color: #b5651d; text-decoration: underline;',
+    strong: 'font-weight: 700; color: #1a1a1a;',
+    em: 'font-style: italic;',
+    ul: 'margin: 0 0 14px 0; padding-left: 24px;',
+    li: 'margin: 0 0 6px 0; font-size: 16px;',
+    blockquote: 'margin: 0 0 16px 0; padding: 14px 20px; border-left: 3px solid #c8873e; background: #faf6f0; font-style: italic; color: #555;',
+    hr: 'border: none; border-top: 1px solid #ddd; margin: 24px 0;',
+  },
+  newsletter: {
+    body: 'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #333; line-height: 1.65; max-width: 600px;',
+    h1: 'font-size: 26px; font-weight: 800; color: #111; margin: 0 0 8px 0; line-height: 1.2; letter-spacing: -0.5px;',
+    h2: 'font-size: 20px; font-weight: 700; color: #111; margin: 28px 0 10px 0; line-height: 1.3; text-transform: uppercase; letter-spacing: 0.5px; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 6px;',
+    h3: 'font-size: 17px; font-weight: 700; color: #222; margin: 20px 0 8px 0;',
+    p: 'margin: 0 0 16px 0; font-size: 15px; color: #444;',
+    a: 'color: #2563eb; text-decoration: none; border-bottom: 1px solid #2563eb44;',
+    strong: 'font-weight: 700; color: #111;',
+    em: 'font-style: italic;',
+    ul: 'margin: 0 0 16px 0; padding-left: 20px;',
+    li: 'margin: 0 0 8px 0; font-size: 15px; color: #444;',
+    blockquote: 'margin: 0 0 16px 0; padding: 16px 20px; background: #f0f4ff; border-left: 4px solid #2563eb; border-radius: 0 8px 8px 0; color: #333;',
+    hr: 'border: none; border-top: 2px solid #f0f0f0; margin: 28px 0;',
+  },
+  bold: {
+    body: 'font-family: "Trebuchet MS", "Gill Sans", sans-serif; color: #1a1a1a; line-height: 1.6; max-width: 640px;',
+    h1: 'font-size: 36px; font-weight: 900; color: #000; margin: 0 0 14px 0; line-height: 1.1; letter-spacing: -1px; text-transform: uppercase;',
+    h2: 'font-size: 24px; font-weight: 800; color: #d4380d; margin: 28px 0 10px 0; line-height: 1.2;',
+    h3: 'font-size: 18px; font-weight: 700; color: #333; margin: 22px 0 8px 0;',
+    p: 'margin: 0 0 14px 0; font-size: 16px;',
+    a: 'color: #d4380d; text-decoration: none; font-weight: 600; border-bottom: 2px solid #d4380d;',
+    strong: 'font-weight: 800; color: #000;',
+    em: 'font-style: italic; color: #d4380d;',
+    ul: 'margin: 0 0 14px 0; padding-left: 20px; list-style-type: square;',
+    li: 'margin: 0 0 8px 0; font-size: 16px;',
+    blockquote: 'margin: 0 0 18px 0; padding: 18px 24px; border-left: 5px solid #d4380d; background: #fff5f0; font-weight: 500;',
+    hr: 'border: none; border-top: 3px solid #000; margin: 28px 0;',
+  },
+  dark: {
+    body: 'font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; color: #d4d0c8; line-height: 1.7; max-width: 640px; background: #1c1b1a;',
+    h1: 'font-size: 28px; font-weight: 700; color: #f0ebe3; margin: 0 0 14px 0; line-height: 1.25;',
+    h2: 'font-size: 22px; font-weight: 600; color: #e8c47c; margin: 26px 0 10px 0; line-height: 1.3;',
+    h3: 'font-size: 18px; font-weight: 600; color: #ccc5b9; margin: 20px 0 8px 0;',
+    p: 'margin: 0 0 14px 0; font-size: 15px;',
+    a: 'color: #e8c47c; text-decoration: underline; text-decoration-color: #e8c47c55;',
+    strong: 'font-weight: 700; color: #f0ebe3;',
+    em: 'font-style: italic; color: #c8b892;',
+    ul: 'margin: 0 0 14px 0; padding-left: 22px;',
+    li: 'margin: 0 0 6px 0; font-size: 15px;',
+    blockquote: 'margin: 0 0 16px 0; padding: 14px 20px; border-left: 3px solid #e8c47c; background: #252422; color: #b8b0a2; font-style: italic;',
+    hr: 'border: none; border-top: 1px solid #3a3835; margin: 24px 0;',
+  },
+};
+
+// ── Markdown Parser ──
+function parseMarkdown(text) {
+  const lines = text.split('\n');
+  const result = [];
+  let inList = false;
+  let listItems = [];
+
+  function flushList() {
+    if (inList && listItems.length) {
+      result.push({ type: 'ul', items: [...listItems] });
+      listItems = [];
+      inList = false;
+    }
+  }
+
+  function inlineFormat(str) {
+    // Links: [text](url)
+    str = str.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, url) => {
+      return `<a style="${presets[currentPreset].a}" href="${escapeAttr(url)}">${escapeHtml(text)}</a>`;
+    });
+    // Bold: **text**
+    str = str.replace(/\*\*(.+?)\*\*/g, (_, t) => `<strong style="${presets[currentPreset].strong}">${t}</strong>`);
+    // Italic: *text*
+    str = str.replace(/\*(.+?)\*/g, (_, t) => `<em style="${presets[currentPreset].em}">${t}</em>`);
+    return str;
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      flushList();
+      continue;
+    }
+
+    // Horizontal rule
+    if (/^-{3,}$/.test(trimmed) || /^\*{3,}$/.test(trimmed)) {
+      flushList();
+      result.push({ type: 'hr' });
+      continue;
+    }
+
+    // Headings
+    const headingMatch = trimmed.match(/^(#{1,3})\s+(.+)$/);
+    if (headingMatch) {
+      flushList();
+      const level = headingMatch[1].length;
+      result.push({ type: `h${level}`, text: headingMatch[2] });
+      continue;
+    }
+
+    // Blockquote
+    if (trimmed.startsWith('> ')) {
+      flushList();
+      result.push({ type: 'blockquote', text: trimmed.slice(2) });
+      continue;
+    }
+
+    // List item
+    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      inList = true;
+      listItems.push(trimmed.slice(2));
+      continue;
+    }
+
+    // Paragraph
+    flushList();
+    result.push({ type: 'p', text: trimmed });
+  }
+  flushList();
+
+  // Generate HTML
+  const s = presets[currentPreset];
+  let html = '';
+
+  for (const block of result) {
+    switch (block.type) {
+      case 'h1':
+        html += `<h1 style="${s.h1}">${inlineFormat(escapeHtml(block.text))}</h1>\n`;
+        break;
+      case 'h2':
+        html += `<h2 style="${s.h2}">${inlineFormat(escapeHtml(block.text))}</h2>\n`;
+        break;
+      case 'h3':
+        html += `<h3 style="${s.h3}">${inlineFormat(escapeHtml(block.text))}</h3>\n`;
+        break;
+      case 'p':
+        html += `<p style="${s.p}">${inlineFormat(escapeHtml(block.text))}</p>\n`;
+        break;
+      case 'blockquote':
+        html += `<blockquote style="${s.blockquote}">${inlineFormat(escapeHtml(block.text))}</blockquote>\n`;
+        break;
+      case 'ul':
+        html += `<ul style="${s.ul}">\n`;
+        for (const item of block.items) {
+          html += `  <li style="${s.li}">${inlineFormat(escapeHtml(item))}</li>\n`;
+        }
+        html += `</ul>\n`;
+        break;
+      case 'hr':
+        html += `<hr style="${s.hr}">\n`;
+        break;
+    }
+  }
+
+  // Wrap in a container div
+  if (html) {
+    html = `<div style="${s.body}">\n${html}</div>`;
+  }
+
+  return html;
+}
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function escapeAttr(str) {
+  return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ── Rendering ──
+function render() {
+  const text = input.value;
+  const html = parseMarkdown(text);
+  preview.innerHTML = html;
+  sourceCode.textContent = html;
+
+  const count = text.length;
+  charCount.textContent = `${count} char${count !== 1 ? 's' : ''}`;
+
+  // Pulse input dot
+  inputDot.classList.add('live');
+  clearTimeout(inputDot._timeout);
+  inputDot._timeout = setTimeout(() => inputDot.classList.remove('live'), 600);
+}
+
+// ── Events ──
+input.addEventListener('input', render);
+
+// Preset buttons
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelector('.preset-btn.active').classList.remove('active');
+    btn.classList.add('active');
+    currentPreset = btn.dataset.preset;
+    render();
+  });
+});
+
+// Copy button
+btnCopy.addEventListener('click', async () => {
+  const html = parseMarkdown(input.value);
+  if (!html) {
+    showToast('Nothing to copy — type some content first');
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(html);
+    btnCopy.textContent = 'Copied!';
+    btnCopy.classList.add('copied');
+    showToast('HTML copied to clipboard');
+    setTimeout(() => {
+      btnCopy.textContent = 'Copy HTML';
+      btnCopy.classList.remove('copied');
+    }, 2000);
+  } catch {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = html;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btnCopy.textContent = 'Copied!';
+    btnCopy.classList.add('copied');
+    showToast('HTML copied to clipboard');
+    setTimeout(() => {
+      btnCopy.textContent = 'Copy HTML';
+      btnCopy.classList.remove('copied');
+    }, 2000);
+  }
+});
+
+// Source toggle
+btnSource.addEventListener('click', () => {
+  showSource = !showSource;
+  sourceView.classList.toggle('visible', showSource);
+  previewScroll.style.display = showSource ? 'none' : 'block';
+  btnSource.classList.toggle('active', showSource);
+});
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+// ── Tab key support in textarea ──
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    input.value = input.value.substring(0, start) + '  ' + input.value.substring(end);
+    input.selectionStart = input.selectionEnd = start + 2;
+    render();
+  }
+});
+
+// Initial render
+render();
+</script>
+</body>
+</html>
