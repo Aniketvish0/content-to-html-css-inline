@@ -667,7 +667,7 @@ const presets = {
 const outputThemes = {
   dark: {
     name: 'Dark',
-    body: 'background: #1a1b1f; color: #c8c5bd; font-family: Georgia, Times New Roman, serif; line-height: 1.75; max-width: 680px; padding: 32px; border-radius: 8px;',
+    body: 'background: #1a1b1f; color: #c8c5bd; font-family: Georgia, Times New Roman, serif; line-height: 1.75; padding: 32px;',
     h1: 'font-size: 30px; font-weight: 700; color: #f0ebe1; margin: 0 0 18px 0; line-height: 1.2; border-bottom: 2px solid #c8873e44; padding-bottom: 12px; letter-spacing: -0.3px;',
     h2: 'font-size: 23px; font-weight: 700; color: #e8c47c; margin: 32px 0 14px 0; line-height: 1.3;',
     h3: 'font-size: 18px; font-weight: 600; color: #a89f91; margin: 24px 0 10px 0; line-height: 1.35; text-transform: uppercase; letter-spacing: 0.5px; font-size: 14px;',
@@ -686,7 +686,7 @@ const outputThemes = {
   },
   cleanLight: {
     name: 'Clean Light',
-    body: 'background: #faf8f4; color: #3a362f; font-family: Georgia, Times New Roman, serif; line-height: 1.75; max-width: 680px; padding: 32px; border-radius: 8px;',
+    body: 'background: #faf8f4; color: #3a362f; font-family: Georgia, Times New Roman, serif; line-height: 1.75; padding: 32px;',
     h1: 'font-size: 30px; font-weight: 700; color: #1c1a17; margin: 0 0 18px 0; line-height: 1.2; border-bottom: 2px solid #e0dbd2; padding-bottom: 12px; letter-spacing: -0.3px;',
     h2: 'font-size: 23px; font-weight: 700; color: #8b4513; margin: 32px 0 14px 0; line-height: 1.3;',
     h3: 'font-size: 18px; font-weight: 600; color: #6b5d4f; margin: 24px 0 10px 0; line-height: 1.35; text-transform: uppercase; letter-spacing: 0.5px; font-size: 14px;',
@@ -705,7 +705,7 @@ const outputThemes = {
   },
   midnightBlue: {
     name: 'Midnight Blue',
-    body: 'background: #0f1729; color: #a8b5d1; font-family: Georgia, Times New Roman, serif; line-height: 1.75; max-width: 680px; padding: 32px; border-radius: 8px;',
+    body: 'background: #0f1729; color: #a8b5d1; font-family: Georgia, Times New Roman, serif; line-height: 1.75; padding: 32px;',
     h1: 'font-size: 30px; font-weight: 700; color: #d6e1f7; margin: 0 0 18px 0; line-height: 1.2; border-bottom: 2px solid #1e3a5f; padding-bottom: 12px; letter-spacing: -0.3px;',
     h2: 'font-size: 23px; font-weight: 700; color: #7eb8f0; margin: 32px 0 14px 0; line-height: 1.3;',
     h3: 'font-size: 18px; font-weight: 600; color: #5a7da8; margin: 24px 0 10px 0; line-height: 1.35; text-transform: uppercase; letter-spacing: 0.5px; font-size: 14px;',
@@ -884,7 +884,8 @@ function docxHtmlToMarkdown(html) {
   div.innerHTML = html;
   const lines = [];
 
-  function extractInlineText(el) {
+  // Extract inline text from a node (only direct text/inline children, not block children)
+  function inlineText(el) {
     let text = '';
     for (const node of el.childNodes) {
       if (node.nodeType === 3) {
@@ -895,44 +896,76 @@ function docxHtmlToMarkdown(html) {
         text += '*' + node.textContent + '*';
       } else if (node.nodeName === 'A') {
         text += '[' + node.textContent + '](' + (node.getAttribute('href') || '') + ')';
-      } else {
+      } else if (node.nodeName === 'BR') {
+        text += '\n';
+      } else if (!['UL', 'OL', 'LI', 'DIV', 'TABLE', 'P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'IMG'].includes(node.nodeName)) {
+        // Other inline elements — just get text
         text += node.textContent;
       }
     }
     return text;
   }
 
-  for (const child of div.children) {
-    const tag = child.tagName;
+  // Recursively walk DOM and emit lines
+  function walk(el) {
+    for (const node of el.childNodes) {
+      if (node.nodeType === 3) {
+        // Bare text node at top level — rare but handle it
+        const t = node.textContent.trim();
+        if (t) lines.push(t);
+        continue;
+      }
+      if (node.nodeType !== 1) continue; // skip non-element nodes
 
-    if (tag === 'H1') {
-      lines.push('# ' + child.textContent.trim());
-      lines.push('');
-    } else if (tag === 'H2') {
-      lines.push('## ' + child.textContent.trim());
-      lines.push('');
-    } else if (tag === 'H3') {
-      lines.push('### ' + child.textContent.trim());
-      lines.push('');
-    } else if (tag === 'UL' || tag === 'OL') {
-      for (const li of child.querySelectorAll('li')) {
-        lines.push('- ' + extractInlineText(li).trim());
+      const tag = node.tagName;
+
+      if (tag === 'H1') {
+        lines.push('# ' + node.textContent.trim());
+        lines.push('');
+      } else if (tag === 'H2') {
+        lines.push('## ' + node.textContent.trim());
+        lines.push('');
+      } else if (tag === 'H3' || tag === 'H4' || tag === 'H5' || tag === 'H6') {
+        lines.push('### ' + node.textContent.trim());
+        lines.push('');
+      } else if (tag === 'P') {
+        const text = inlineText(node).trim();
+        if (text) lines.push(text);
+      } else if (tag === 'BLOCKQUOTE') {
+        const text = node.textContent.trim();
+        if (text) lines.push('> ' + text);
+      } else if (tag === 'IMG') {
+        // Skip images
+      } else if (tag === 'TABLE') {
+        for (const row of node.querySelectorAll('tr')) {
+          const cells = [...row.querySelectorAll('td, th')].map(c => c.textContent.trim());
+          lines.push(cells.join(' | '));
+        }
+        lines.push('');
+      } else if (tag === 'UL' || tag === 'OL') {
+        // Recurse into list — don't emit anything for the list itself
+        walk(node);
+      } else if (tag === 'LI') {
+        // An <li> may contain: direct inline text + nested <ul>/<ol>
+        // Extract only the direct inline text, then recurse for nested lists
+        const text = inlineText(node).trim();
+        if (text) {
+          lines.push(text);
+        }
+        // Recurse into any nested block children (sub-lists, etc.)
+        for (const child of node.children) {
+          if (['UL', 'OL'].includes(child.tagName)) {
+            walk(child);
+          }
+        }
+      } else {
+        // Unknown block element — recurse
+        walk(node);
       }
-      lines.push('');
-    } else if (tag === 'TABLE') {
-      // Basic table handling: each row as a line
-      for (const row of child.querySelectorAll('tr')) {
-        const cells = [...row.querySelectorAll('td, th')].map(c => c.textContent.trim());
-        lines.push(cells.join(' | '));
-      }
-      lines.push('');
-    } else {
-      // P or any block
-      const text = extractInlineText(child).trim();
-      if (text) lines.push(text);
-      else lines.push('');
     }
   }
+
+  walk(div);
 
   // Post-process: detect code blocks and language headers
   return detectAndWrapCodeBlocks(lines);
@@ -968,7 +1001,8 @@ const codePatterns = [
 ];
 
 // Header patterns like "Java Program for X"
-const langHeaderRegex = /^(Java|Cpp|C\+\+|C|Python|JavaScript|JS)\s+(Program|Code)\s+(for|to|of)\s+(.+)$/i;
+// Matches code headers with optional **bold** markers from docx parsing
+const langHeaderRegex = /^\*{0,2}(Java|Cpp|C\+\+|C|Python|JavaScript|JS)\s+(Program|Code)\s+(for|to|of)\s+(.+?)\*{0,2}$/i;
 
 function isLikelyCode(line) {
   const t = line.trim();
@@ -1005,9 +1039,10 @@ function detectAndWrapCodeBlocks(lines) {
       while (i < lines.length) {
         const cl = lines[i];
         const ct = cl.trim();
-        // Stop at next header, heading, or non-code paragraph after gathering some code
+        // Stop at next header, heading, bold section headers, or non-code paragraph
         if (langHeaderRegex.test(ct)) break;
         if (/^#{1,3}\s+/.test(ct)) break;
+        if (/^\*\*[A-Z]/.test(ct) && !langHeaderRegex.test(ct)) break; // bold section header like **Explanation**
         if (ct === '' && codeLines.length === 0) { i++; continue; } // skip leading blanks
         // Stop at prose-like lines after collecting 3+ code lines
         if (ct !== '' && !isLikelyCode(cl) && codeLines.length > 2) {
