@@ -447,21 +447,26 @@
 
 # Heading 1
 ## Heading 2
-### Heading 3
 
 Regular paragraph text with **bold** and *italic* words.
 
 - List item one
 - List item two
-- List item three
 
 > This is a blockquote
 
-[Link text](https://example.com)
+```java
+System.out.println('Hello');
+```
+```cpp
+cout << 'Hello';
+```
+```c
+printf('Hello');
+```
 
----
-
-Just start typing or paste content..."></textarea>
+Consecutive ```lang blocks become tabbed code.
+Single code blocks become collapsible."></textarea>
     <div class="syntax-guide">
       <span class="syntax-hint"><code>#</code> heading</span>
       <span class="syntax-hint"><code>**text**</code> bold</span>
@@ -469,7 +474,7 @@ Just start typing or paste content..."></textarea>
       <span class="syntax-hint"><code>- item</code> list</span>
       <span class="syntax-hint"><code>> text</code> quote</span>
       <span class="syntax-hint"><code>[text](url)</code> link</span>
-      <span class="syntax-hint"><code>Java Program for X</code> tabbed code</span>
+      <span class="syntax-hint"><code>```lang</code> code block</span>
     </div>
   </div>
 
@@ -525,7 +530,7 @@ let tabIdCounter = 0;
 // ── Style Presets (tool UI presets — unchanged) ──
 const presets = {
   clean: {
-    body: 'font-family: Georgia, "Times New Roman", serif; color: #2c2c2c; line-height: 1.7; max-width: 640px;',
+    body: 'font-family: Georgia, Times New Roman, serif; color: #2c2c2c; line-height: 1.7; max-width: 640px;',
     h1: 'font-family: Georgia, serif; font-size: 28px; font-weight: 700; color: #1a1a1a; margin: 0 0 16px 0; line-height: 1.25; border-bottom: 2px solid #e8e8e8; padding-bottom: 10px;',
     h2: 'font-family: Georgia, serif; font-size: 22px; font-weight: 700; color: #1a1a1a; margin: 24px 0 12px 0; line-height: 1.3;',
     h3: 'font-family: Georgia, serif; font-size: 18px; font-weight: 700; color: #333; margin: 20px 0 10px 0; line-height: 1.35;',
@@ -586,7 +591,7 @@ const presets = {
 const outputThemes = {
   dark: {
     name: 'Dark',
-    body: 'background: #1a1b1f; color: #c8c5bd; font-family: Georgia, "Times New Roman", serif; line-height: 1.75; max-width: 680px; padding: 32px; border-radius: 8px;',
+    body: 'background: #1a1b1f; color: #c8c5bd; font-family: Georgia, Times New Roman, serif; line-height: 1.75; max-width: 680px; padding: 32px; border-radius: 8px;',
     h1: 'font-size: 30px; font-weight: 700; color: #f0ebe1; margin: 0 0 18px 0; line-height: 1.2; border-bottom: 2px solid #c8873e44; padding-bottom: 12px; letter-spacing: -0.3px;',
     h2: 'font-size: 23px; font-weight: 700; color: #e8c47c; margin: 32px 0 14px 0; line-height: 1.3;',
     h3: 'font-size: 18px; font-weight: 600; color: #a89f91; margin: 24px 0 10px 0; line-height: 1.35; text-transform: uppercase; letter-spacing: 0.5px; font-size: 14px;',
@@ -598,14 +603,14 @@ const outputThemes = {
     li: 'margin: 0 0 8px 0; font-size: 15.5px; color: #b8b3a9;',
     blockquote: 'margin: 0 0 18px 0; padding: 16px 20px; border-left: 3px solid #c8873e; background: #22232a; color: #a89f91; font-style: italic; border-radius: 0 6px 6px 0;',
     hr: 'border: none; border-top: 1px solid #2e2f36; margin: 28px 0;',
-    codeBlock: 'background: #12131a; color: #d4cfca; padding: 20px; font-family: "DM Mono", "Fira Code", "Consolas", monospace; font-size: 13.5px; line-height: 1.65; overflow-x: auto; border-radius: 0 0 8px 8px; border: 1px solid #2a2b33; border-top: none; white-space: pre; display: block; margin: 0;',
+    codeBlock: 'background: #12131a; color: #d4cfca; padding: 20px; font-family: DM Mono, Fira Code, Consolas, monospace; font-size: 13.5px; line-height: 1.65; overflow-x: auto; border-radius: 0 0 8px 8px; border: 1px solid #2a2b33; border-top: none; white-space: pre; display: block; margin: 0;',
     tabBar: 'background: #22232a; padding: 0; display: flex; border-radius: 8px 8px 0 0; border: 1px solid #2a2b33; border-bottom: none; overflow: hidden;',
-    tabActive: 'background: #12131a; color: #e8c47c; padding: 10px 20px; font-family: "DM Mono", monospace; font-size: 12.5px; font-weight: 600; border: none; cursor: pointer; border-bottom: 2px solid #c8873e; letter-spacing: 0.3px;',
-    tabInactive: 'background: transparent; color: #6b6760; padding: 10px 20px; font-family: "DM Mono", monospace; font-size: 12.5px; font-weight: 500; border: none; cursor: pointer; border-bottom: 2px solid transparent; letter-spacing: 0.3px;',
+    tabActive: 'background: #12131a; color: #e8c47c; padding: 10px 20px; font-family: DM Mono, monospace; font-size: 12.5px; font-weight: 600; border: none; cursor: pointer; border-bottom: 2px solid #c8873e; letter-spacing: 0.3px;',
+    tabInactive: 'background: transparent; color: #6b6760; padding: 10px 20px; font-family: DM Mono, monospace; font-size: 12.5px; font-weight: 500; border: none; cursor: pointer; border-bottom: 2px solid transparent; letter-spacing: 0.3px;',
   },
   cleanLight: {
     name: 'Clean Light',
-    body: 'background: #faf8f4; color: #3a362f; font-family: Georgia, "Times New Roman", serif; line-height: 1.75; max-width: 680px; padding: 32px; border-radius: 8px;',
+    body: 'background: #faf8f4; color: #3a362f; font-family: Georgia, Times New Roman, serif; line-height: 1.75; max-width: 680px; padding: 32px; border-radius: 8px;',
     h1: 'font-size: 30px; font-weight: 700; color: #1c1a17; margin: 0 0 18px 0; line-height: 1.2; border-bottom: 2px solid #e0dbd2; padding-bottom: 12px; letter-spacing: -0.3px;',
     h2: 'font-size: 23px; font-weight: 700; color: #8b4513; margin: 32px 0 14px 0; line-height: 1.3;',
     h3: 'font-size: 18px; font-weight: 600; color: #6b5d4f; margin: 24px 0 10px 0; line-height: 1.35; text-transform: uppercase; letter-spacing: 0.5px; font-size: 14px;',
@@ -617,14 +622,14 @@ const outputThemes = {
     li: 'margin: 0 0 8px 0; font-size: 15.5px; color: #4a453d;',
     blockquote: 'margin: 0 0 18px 0; padding: 16px 20px; border-left: 3px solid #c8873e; background: #f0ece4; color: #6b5d4f; font-style: italic; border-radius: 0 6px 6px 0;',
     hr: 'border: none; border-top: 1px solid #ddd7cc; margin: 28px 0;',
-    codeBlock: 'background: #1c1b22; color: #d4d0c8; padding: 20px; font-family: "DM Mono", "Fira Code", "Consolas", monospace; font-size: 13.5px; line-height: 1.65; overflow-x: auto; border-radius: 0 0 8px 8px; border: 1px solid #e0dbd2; border-top: none; white-space: pre; display: block; margin: 0;',
+    codeBlock: 'background: #1c1b22; color: #d4d0c8; padding: 20px; font-family: DM Mono, Fira Code, Consolas, monospace; font-size: 13.5px; line-height: 1.65; overflow-x: auto; border-radius: 0 0 8px 8px; border: 1px solid #e0dbd2; border-top: none; white-space: pre; display: block; margin: 0;',
     tabBar: 'background: #ede8df; padding: 0; display: flex; border-radius: 8px 8px 0 0; border: 1px solid #e0dbd2; border-bottom: none; overflow: hidden;',
-    tabActive: 'background: #1c1b22; color: #f0ebe1; padding: 10px 20px; font-family: "DM Mono", monospace; font-size: 12.5px; font-weight: 600; border: none; cursor: pointer; border-bottom: 2px solid #c8873e; letter-spacing: 0.3px;',
-    tabInactive: 'background: transparent; color: #8a8278; padding: 10px 20px; font-family: "DM Mono", monospace; font-size: 12.5px; font-weight: 500; border: none; cursor: pointer; border-bottom: 2px solid transparent; letter-spacing: 0.3px;',
+    tabActive: 'background: #1c1b22; color: #f0ebe1; padding: 10px 20px; font-family: DM Mono, monospace; font-size: 12.5px; font-weight: 600; border: none; cursor: pointer; border-bottom: 2px solid #c8873e; letter-spacing: 0.3px;',
+    tabInactive: 'background: transparent; color: #8a8278; padding: 10px 20px; font-family: DM Mono, monospace; font-size: 12.5px; font-weight: 500; border: none; cursor: pointer; border-bottom: 2px solid transparent; letter-spacing: 0.3px;',
   },
   midnightBlue: {
     name: 'Midnight Blue',
-    body: 'background: #0f1729; color: #a8b5d1; font-family: Georgia, "Times New Roman", serif; line-height: 1.75; max-width: 680px; padding: 32px; border-radius: 8px;',
+    body: 'background: #0f1729; color: #a8b5d1; font-family: Georgia, Times New Roman, serif; line-height: 1.75; max-width: 680px; padding: 32px; border-radius: 8px;',
     h1: 'font-size: 30px; font-weight: 700; color: #d6e1f7; margin: 0 0 18px 0; line-height: 1.2; border-bottom: 2px solid #1e3a5f; padding-bottom: 12px; letter-spacing: -0.3px;',
     h2: 'font-size: 23px; font-weight: 700; color: #7eb8f0; margin: 32px 0 14px 0; line-height: 1.3;',
     h3: 'font-size: 18px; font-weight: 600; color: #5a7da8; margin: 24px 0 10px 0; line-height: 1.35; text-transform: uppercase; letter-spacing: 0.5px; font-size: 14px;',
@@ -636,43 +641,36 @@ const outputThemes = {
     li: 'margin: 0 0 8px 0; font-size: 15.5px; color: #8e9dba;',
     blockquote: 'margin: 0 0 18px 0; padding: 16px 20px; border-left: 3px solid #3b7dd8; background: #13203d; color: #7b8fb0; font-style: italic; border-radius: 0 6px 6px 0;',
     hr: 'border: none; border-top: 1px solid #1e2d4a; margin: 28px 0;',
-    codeBlock: 'background: #0a1020; color: #c5cee0; padding: 20px; font-family: "DM Mono", "Fira Code", "Consolas", monospace; font-size: 13.5px; line-height: 1.65; overflow-x: auto; border-radius: 0 0 8px 8px; border: 1px solid #1a2744; border-top: none; white-space: pre; display: block; margin: 0;',
+    codeBlock: 'background: #0a1020; color: #c5cee0; padding: 20px; font-family: DM Mono, Fira Code, Consolas, monospace; font-size: 13.5px; line-height: 1.65; overflow-x: auto; border-radius: 0 0 8px 8px; border: 1px solid #1a2744; border-top: none; white-space: pre; display: block; margin: 0;',
     tabBar: 'background: #13203d; padding: 0; display: flex; border-radius: 8px 8px 0 0; border: 1px solid #1a2744; border-bottom: none; overflow: hidden;',
-    tabActive: 'background: #0a1020; color: #7eb8f0; padding: 10px 20px; font-family: "DM Mono", monospace; font-size: 12.5px; font-weight: 600; border: none; cursor: pointer; border-bottom: 2px solid #3b7dd8; letter-spacing: 0.3px;',
-    tabInactive: 'background: transparent; color: #4a5d80; padding: 10px 20px; font-family: "DM Mono", monospace; font-size: 12.5px; font-weight: 500; border: none; cursor: pointer; border-bottom: 2px solid transparent; letter-spacing: 0.3px;',
+    tabActive: 'background: #0a1020; color: #7eb8f0; padding: 10px 20px; font-family: DM Mono, monospace; font-size: 12.5px; font-weight: 600; border: none; cursor: pointer; border-bottom: 2px solid #3b7dd8; letter-spacing: 0.3px;',
+    tabInactive: 'background: transparent; color: #4a5d80; padding: 10px 20px; font-family: DM Mono, monospace; font-size: 12.5px; font-weight: 500; border: none; cursor: pointer; border-bottom: 2px solid transparent; letter-spacing: 0.3px;',
   },
 };
 
-// ── Code block detection regex ──
-// Matches: "Java Program for X", "Cpp Program for X", "C Program for X"
-const codeHeaderRegex = /^(Java|Cpp|C)\s+Program\s+for\s+(.+)$/i;
+// ── Language display names ──
+const langNames = {
+  java: 'Java', javascript: 'JavaScript', js: 'JavaScript',
+  cpp: 'C++', 'c++': 'C++', c: 'C', python: 'Python', py: 'Python',
+  html: 'HTML', css: 'CSS', sql: 'SQL', bash: 'Bash', sh: 'Shell',
+  go: 'Go', rust: 'Rust', php: 'PHP', ruby: 'Ruby', swift: 'Swift',
+  kotlin: 'Kotlin', ts: 'TypeScript', typescript: 'TypeScript',
+};
 
-// ── Determine if a line looks like code ──
-function isCodeLine(line) {
-  // Empty lines inside code blocks are fine
-  if (line.trim() === '') return true;
-  // Lines with typical code indicators
-  if (/^\s{2,}/.test(line)) return true; // indented
-  if (/^[{}();]/.test(line.trim())) return true;
-  if (/^(#include|import |package |public |private |protected |class |int |void |float |double |char |return |for|while|if|else|switch|case|break|continue|using |namespace |cout|cin|printf|scanf|System\.)/.test(line.trim())) return true;
-  if (/[{};]$/.test(line.trim())) return true;
-  if (/^\/\//.test(line.trim())) return true; // comments
-  return false;
+function getLangDisplay(raw) {
+  const key = raw.toLowerCase().trim();
+  return langNames[key] || raw;
 }
 
-// ── Smart Content Parser ──
+// ── Content Parser (fenced code blocks with ```) ──
 function parseContent(text) {
   const lines = text.split('\n');
   const result = [];
   let inList = false;
   let listItems = [];
-  // Collect code groups: topic -> [{lang, lines}]
-  let codeGroups = {};
-  let codeGroupOrder = [];
-  let currentCodeLang = null;
-  let currentCodeTopic = null;
-  let currentCodeLines = [];
-  let collectingCode = false;
+  let inCode = false;
+  let codeLang = '';
+  let codeLines = [];
 
   function flushList() {
     if (inList && listItems.length) {
@@ -683,79 +681,44 @@ function parseContent(text) {
   }
 
   function flushCode() {
-    if (collectingCode && currentCodeLang && currentCodeTopic) {
+    if (codeLines.length) {
       // Trim trailing empty lines
-      while (currentCodeLines.length && currentCodeLines[currentCodeLines.length - 1].trim() === '') {
-        currentCodeLines.pop();
-      }
-      if (currentCodeLines.length) {
-        const key = currentCodeTopic;
-        if (!codeGroups[key]) {
-          codeGroups[key] = [];
-          codeGroupOrder.push(key);
-          // Insert a placeholder in result
-          result.push({ type: 'codeGroup', topic: key });
-        }
-        codeGroups[key].push({ lang: currentCodeLang, code: currentCodeLines.join('\n') });
+      while (codeLines.length && codeLines[codeLines.length - 1].trim() === '') codeLines.pop();
+      if (codeLines.length) {
+        result.push({ type: 'code', lang: getLangDisplay(codeLang), code: codeLines.join('\n') });
       }
     }
-    currentCodeLang = null;
-    currentCodeTopic = null;
-    currentCodeLines = [];
-    collectingCode = false;
+    codeLines = [];
+    codeLang = '';
+    inCode = false;
   }
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
 
-    // Check for code header
-    const codeMatch = trimmed.match(codeHeaderRegex);
-    if (codeMatch) {
+    // Fenced code block start: ```lang
+    if (!inCode && /^```(\w*)/.test(trimmed)) {
+      flushList();
+      codeLang = trimmed.match(/^```(\w*)/)[1] || 'code';
+      inCode = true;
+      codeLines = [];
+      continue;
+    }
+
+    // Fenced code block end: ```
+    if (inCode && trimmed === '```') {
       flushCode();
-      flushList();
-      const rawLang = codeMatch[1];
-      currentCodeLang = rawLang === 'Cpp' || rawLang === 'cpp' ? 'C++' : rawLang === 'c' ? 'C' : rawLang.charAt(0).toUpperCase() + rawLang.slice(1);
-      currentCodeTopic = codeMatch[2].trim();
-      collectingCode = true;
       continue;
     }
 
-    // If collecting code, check if line is still code
-    if (collectingCode) {
-      // A non-empty line that doesn't look like code ends the block
-      // But we also stop at known section markers
-      const isHeading = /^(#{1,3})\s+/.test(trimmed);
-      const isBlockquote = trimmed.startsWith('> ');
-      const isListItem = trimmed.startsWith('- ') || trimmed.startsWith('* ');
-      const isHr = /^-{3,}$/.test(trimmed) || /^\*{3,}$/.test(trimmed);
-      const isNextCodeHeader = codeHeaderRegex.test(trimmed);
-      // Known non-code section words
-      const isSectionKeyword = /^(Explanation|Definition|Applications|Example|Note|Output|Resulting|Updated|Memory|Several|The |An |In |While |Each |Initially|To |After |Elements|Example output|Traversal|Insertion|Deletion|Searching|Updating)/.test(trimmed);
-
-      if (isHeading || isBlockquote || isHr || isNextCodeHeader) {
-        flushCode();
-        // Don't continue — re-process this line below
-      } else if (trimmed === '' && currentCodeLines.length === 0) {
-        // Skip leading empty lines in code
-        continue;
-      } else if (isSectionKeyword && !isCodeLine(line)) {
-        flushCode();
-        // Re-process this line below
-      } else if (trimmed !== '' && !isCodeLine(line) && currentCodeLines.length > 3) {
-        // After collecting some code, a non-code-looking line ends the block
-        flushCode();
-        // Re-process
-      } else {
-        currentCodeLines.push(line);
-        continue;
-      }
-    }
-
-    if (!trimmed) {
-      flushList();
+    // Inside a code block — collect lines
+    if (inCode) {
+      codeLines.push(line);
       continue;
     }
+
+    if (!trimmed) { flushList(); continue; }
 
     // Horizontal rule
     if (/^-{3,}$/.test(trimmed) || /^\*{3,}$/.test(trimmed)) {
@@ -768,8 +731,7 @@ function parseContent(text) {
     const headingMatch = trimmed.match(/^(#{1,3})\s+(.+)$/);
     if (headingMatch) {
       flushList();
-      const level = headingMatch[1].length;
-      result.push({ type: `h${level}`, text: headingMatch[2] });
+      result.push({ type: `h${headingMatch[1].length}`, text: headingMatch[2] });
       continue;
     }
 
@@ -791,15 +753,34 @@ function parseContent(text) {
     flushList();
     result.push({ type: 'p', text: trimmed });
   }
-  flushCode();
+  // If code block was never closed, flush it anyway
+  if (inCode) flushCode();
   flushList();
 
-  return { blocks: result, codeGroups };
+  // Post-process: group consecutive code blocks into tabGroups
+  const merged = [];
+  for (let i = 0; i < result.length; i++) {
+    if (result[i].type === 'code') {
+      const group = [result[i]];
+      while (i + 1 < result.length && result[i + 1].type === 'code') {
+        group.push(result[++i]);
+      }
+      if (group.length > 1) {
+        merged.push({ type: 'tabGroup', blocks: group });
+      } else {
+        merged.push({ type: 'singleCode', lang: group[0].lang, code: group[0].code });
+      }
+    } else {
+      merged.push(result[i]);
+    }
+  }
+
+  return merged;
 }
 
 // ── Generate HTML from parsed content ──
 function generateHtml(text) {
-  const { blocks, codeGroups } = parseContent(text);
+  const blocks = parseContent(text);
   const ot = outputThemes[currentOutputTheme];
 
   function inlineFormat(str) {
@@ -812,8 +793,6 @@ function generateHtml(text) {
   }
 
   let html = '';
-  // Track which code groups have been rendered
-  const renderedGroups = new Set();
 
   for (const block of blocks) {
     switch (block.type) {
@@ -842,14 +821,12 @@ function generateHtml(text) {
       case 'hr':
         html += `<hr style="${ot.hr}">\n`;
         break;
-      case 'codeGroup': {
-        if (renderedGroups.has(block.topic)) break;
-        renderedGroups.add(block.topic);
-        const group = codeGroups[block.topic];
-        if (!group || !group.length) break;
-        html += generateTabbedCode(block.topic, group, ot);
+      case 'singleCode':
+        html += generateSingleCode(block, ot);
         break;
-      }
+      case 'tabGroup':
+        html += generateTabbedCode(block.blocks, ot);
+        break;
     }
   }
 
@@ -860,29 +837,58 @@ function generateHtml(text) {
   return html;
 }
 
-// ── Generate tabbed code block HTML with inline styles ──
-function generateTabbedCode(topic, codeBlocks, theme) {
-  const groupId = 'cg' + (tabIdCounter++);
-  let html = '';
+// ── Arrow helper for summary ──
+function summaryArrow(color) {
+  return `<span style="display: inline-block; margin-right: 8px; transition: transform 0.2s; font-size: 10px; color: ${color};">&#9654;</span>`;
+}
 
-  html += `<div style="margin: 20px 0 24px 0;">\n`;
+// ── Single code block in a collapsible details/summary ──
+function generateSingleCode(block, theme) {
+  const summaryColor = theme.tabActive.match(/(?:^|;)\s*color:\s*([^;]+)/)?.[1]?.trim() || '#e8c47c';
+  const barBg = theme.tabBar.match(/background:\s*([^;]+)/)?.[1]?.trim() || '#22232a';
+  const borderColor = theme.tabBar.match(/border:\s*[^;]*\s([^;]+)/)?.[1]?.trim() || '#2a2b33';
+
+  let html = `<details style="margin: 16px 0 20px 0;">\n`;
+  html += `  <summary style="background: ${barBg}; padding: 11px 20px; cursor: pointer; list-style: none; font-family: DM Mono, monospace; font-size: 12.5px; font-weight: 600; color: ${summaryColor}; border: 1px solid ${borderColor}; border-radius: 8px; user-select: none;" onclick="var a=this.querySelector('span');if(this.parentElement.open){a.style.transform='rotate(0deg)'}else{a.style.transform='rotate(90deg)'}">${summaryArrow(summaryColor)}${escapeHtml(block.lang)}</summary>\n`;
+  html += `  <pre style="${theme.codeBlock}; border-radius: 0 0 8px 8px; border-top: none;">${escapeHtml(block.code)}</pre>\n`;
+  html += `</details>\n`;
+  return html;
+}
+
+// ── Tabbed code blocks (consecutive ```lang blocks) in a collapsible details/summary ──
+function generateTabbedCode(codeBlocks, theme) {
+  const gid = 'cg' + (tabIdCounter++);
+
+  const activeBg = theme.tabActive.match(/background:\s*([^;]+)/)?.[1]?.trim() || '#12131a';
+  const activeColor = theme.tabActive.match(/(?:^|;)\s*color:\s*([^;]+)/)?.[1]?.trim() || '#e8c47c';
+  const activeBorder = theme.tabActive.match(/border-bottom:\s*([^;]+)/)?.[1]?.trim() || '2px solid #c8873e';
+  const inactiveColor = theme.tabInactive.match(/(?:^|;)\s*color:\s*([^;]+)/)?.[1]?.trim() || '#6b6760';
+  const barBg = theme.tabBar.match(/background:\s*([^;]+)/)?.[1]?.trim() || '#22232a';
+  const borderColor = theme.tabBar.match(/border:\s*[^;]*\s([^;]+)/)?.[1]?.trim() || '#2a2b33';
+
+  const label = codeBlocks.map(b => b.lang).join(' / ');
+
+  let html = `<details style="margin: 16px 0 20px 0;">\n`;
+  html += `  <summary style="background: ${barBg}; padding: 11px 20px; cursor: pointer; list-style: none; font-family: DM Mono, monospace; font-size: 12.5px; font-weight: 600; color: ${activeColor}; border: 1px solid ${borderColor}; border-radius: 8px; user-select: none;" onclick="var a=this.querySelector('span');if(this.parentElement.open){a.style.transform='rotate(0deg)'}else{a.style.transform='rotate(90deg)'}">${summaryArrow(activeColor)}${escapeHtml(label)}</summary>\n`;
 
   // Tab bar
-  html += `<div style="${theme.tabBar}">\n`;
+  html += `  <div style="${theme.tabBar}; border-radius: 0; border-top: none;">\n`;
   codeBlocks.forEach((block, idx) => {
     const style = idx === 0 ? theme.tabActive : theme.tabInactive;
-    html += `  <button onclick="(function(el){var p=el.parentElement.parentElement;var tabs=p.querySelectorAll('button');var panes=p.querySelectorAll('pre');var activeS='${theme.tabActive.replace(/'/g, "\\'")}';var inactiveS='${theme.tabInactive.replace(/'/g, "\\'")}';for(var i=0;i<tabs.length;i++){tabs[i].style.cssText=inactiveS;panes[i].style.cssText=panes[i].dataset.baseStyle+';display:none';}el.style.cssText=activeS;panes[${idx}].style.cssText=panes[${idx}].dataset.baseStyle+';display:block';})(this)" style="${style}">${escapeHtml(block.lang)}</button>\n`;
+    const paneIds = codeBlocks.map((_, j) => `'${gid}_p${j}'`).join(',');
+    const tabIds = codeBlocks.map((_, j) => `'${gid}_t${j}'`).join(',');
+    const fn = `var ps=[${paneIds}],ts=[${tabIds}];ps.forEach(function(id){document.getElementById(id).style.display='none'});ts.forEach(function(id){var t=document.getElementById(id);t.style.background='transparent';t.style.color='${inactiveColor}';t.style.fontWeight='500';t.style.borderBottom='2px solid transparent'});document.getElementById('${gid}_p${idx}').style.display='block';var me=document.getElementById('${gid}_t${idx}');me.style.background='${activeBg}';me.style.color='${activeColor}';me.style.fontWeight='600';me.style.borderBottom='${activeBorder}'`;
+    html += `    <button id="${gid}_t${idx}" onclick="${escapeAttr(fn)}" style="${style}">${escapeHtml(block.lang)}</button>\n`;
   });
-  html += `</div>\n`;
+  html += `  </div>\n`;
 
   // Code panes
   codeBlocks.forEach((block, idx) => {
-    const display = idx === 0 ? 'display: block' : 'display: none';
-    const baseStyle = theme.codeBlock;
-    html += `<pre data-base-style="${escapeAttr(baseStyle)}" style="${baseStyle}; ${display};">${escapeHtml(block.code)}</pre>\n`;
+    const display = idx === 0 ? '' : ' display: none;';
+    html += `  <pre id="${gid}_p${idx}" style="${theme.codeBlock}; border-radius: 0 0 8px 8px; border-top: none;${display}">${escapeHtml(block.code)}</pre>\n`;
   });
 
-  html += `</div>\n`;
+  html += `</details>\n`;
   return html;
 }
 
