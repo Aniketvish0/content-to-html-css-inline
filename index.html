@@ -595,7 +595,7 @@ const outputThemes = {
     h1: 'font-size: 30px; font-weight: 700; color: #f0ebe1; margin: 0 0 18px 0; line-height: 1.2; border-bottom: 2px solid #c8873e44; padding-bottom: 12px; letter-spacing: -0.3px;',
     h2: 'font-size: 23px; font-weight: 700; color: #e8c47c; margin: 32px 0 14px 0; line-height: 1.3;',
     h3: 'font-size: 18px; font-weight: 600; color: #a89f91; margin: 24px 0 10px 0; line-height: 1.35; text-transform: uppercase; letter-spacing: 0.5px; font-size: 14px;',
-    p: 'margin: 0 0 16px 0; font-size: 15.5px; color: #b8b3a9;',
+    p: 'margin: 0 0 16px 0; font-size: 15.5px; color: #b8b3a9; white-space: pre-wrap;',
     a: 'color: #e8c47c; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #e8c47c66;',
     strong: 'font-weight: 700; color: #f0ebe1;',
     em: 'font-style: italic; color: #d4a85c;',
@@ -614,7 +614,7 @@ const outputThemes = {
     h1: 'font-size: 30px; font-weight: 700; color: #1c1a17; margin: 0 0 18px 0; line-height: 1.2; border-bottom: 2px solid #e0dbd2; padding-bottom: 12px; letter-spacing: -0.3px;',
     h2: 'font-size: 23px; font-weight: 700; color: #8b4513; margin: 32px 0 14px 0; line-height: 1.3;',
     h3: 'font-size: 18px; font-weight: 600; color: #6b5d4f; margin: 24px 0 10px 0; line-height: 1.35; text-transform: uppercase; letter-spacing: 0.5px; font-size: 14px;',
-    p: 'margin: 0 0 16px 0; font-size: 15.5px; color: #4a453d;',
+    p: 'margin: 0 0 16px 0; font-size: 15.5px; color: #4a453d; white-space: pre-wrap;',
     a: 'color: #8b4513; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #8b451366;',
     strong: 'font-weight: 700; color: #1c1a17;',
     em: 'font-style: italic; color: #7a5c3a;',
@@ -633,7 +633,7 @@ const outputThemes = {
     h1: 'font-size: 30px; font-weight: 700; color: #d6e1f7; margin: 0 0 18px 0; line-height: 1.2; border-bottom: 2px solid #1e3a5f; padding-bottom: 12px; letter-spacing: -0.3px;',
     h2: 'font-size: 23px; font-weight: 700; color: #7eb8f0; margin: 32px 0 14px 0; line-height: 1.3;',
     h3: 'font-size: 18px; font-weight: 600; color: #5a7da8; margin: 24px 0 10px 0; line-height: 1.35; text-transform: uppercase; letter-spacing: 0.5px; font-size: 14px;',
-    p: 'margin: 0 0 16px 0; font-size: 15.5px; color: #8e9dba;',
+    p: 'margin: 0 0 16px 0; font-size: 15.5px; color: #8e9dba; white-space: pre-wrap;',
     a: 'color: #7eb8f0; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #7eb8f066;',
     strong: 'font-weight: 700; color: #d6e1f7;',
     em: 'font-style: italic; color: #82c4ad;',
@@ -749,9 +749,9 @@ function parseContent(text) {
       continue;
     }
 
-    // Paragraph
+    // Paragraph — preserve original leading whitespace
     flushList();
-    result.push({ type: 'p', text: trimmed });
+    result.push({ type: 'p', text: line });
   }
   // If code block was never closed, flush it anyway
   if (inCode) flushCode();
